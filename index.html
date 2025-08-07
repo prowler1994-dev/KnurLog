@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#22c55e">
+<title>FitLog – dziennik treningów</title>
+<style>
+:root{
+  --bg:#0b1320;--card:#121a2b;--muted:#9fb3c8;--accent:#22c55e;--red:#ef4444;--text:#ffffff;
+}
+:root.light{
+  --bg:#f6f8fc;--card:#ffffff;--muted:#5b6b7c;--accent:#16a34a;--red:#dc2626;--text:#0b1320;
+}
+*{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+body{margin:0;background:var(--bg);color:var(--text);}
+header{position:sticky;top:0;z-index:9;background:var(--card);padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1f2a44;justify-content:space-between}
+header .left{display:flex;gap:12px;align-items:center}
+header img{width:28px;height:28px}
+h1{font-size:18px;margin:0}
+.container{max-width:1000px;margin:20px auto;padding:0 16px;}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.nav button{background:#0f172a;color:#cdd7e5;border:1px solid #1f2a44;padding:10px 12px;border-radius:10px;cursor:pointer}
+.nav button.active{background:var(--accent);color:black;border-color:transparent;font-weight:700}
+.card{background:var(--card);border:1px solid #1f2a44;border-radius:12px;padding:14px;margin-bottom:14px}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+input,select,textarea{width:100%;padding:10px;background:#0f172a;color:#e5eef9;border:1px solid #1f2a44;border-radius:10px}
+:root.light input,:root.light select,:root.light textarea{background:#f1f5f9;color:#0b1320;border-color:#e2e8f0}
+.row{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+.col-12{grid-column:span 12}
+.col-9{grid-column:span 9}
+.col-8{grid-column:span 8}
+.col-6{grid-column:span 6}
+.col-4{grid-column:span 4}
+.col-3{grid-column:span 3}
+.btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer}
+.btn-primary{background:var(--accent);color:black}
+.btn-danger{background:var(--red);color:white}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border-bottom:1px solid #1f2a44;padding:8px;text-align:left;font-size:14px}
+.badge{padding:2px 8px;border-radius:12px;background:#0f172a;border:1px solid #1f2a44;color:#d5e3f4;font-size:12px}
+footer{padding:30px 0;color:var(--muted);text-align:center}
+small{color:var(--muted)}
+.toggle{display:flex;align-items:center;gap:8px}
+.toggle input{width:auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="left">
+    <img src="icon-192.png" alt="icon"/>
+    <h1>FitLog – dziennik treningów i wagi</h1>
+  </div>
+  <div class="toggle">
+    <label for="themeToggle">Jasny motyw</label>
+    <input type="checkbox" id="themeToggle">
+  </div>
+</header>
+
+<div class="container">
+  <div class="nav">
+    <button class="active" data-tab="workouts">Treningi</button>
+    <button data-tab="cardio">Cardio</button>
+    <button data-tab="weight">Waga</button>
+    <button data-tab="charts">Wykresy</button>
+    <button data-tab="tools">Narzędzia</button>
+    <button data-tab="backup">Eksport/Import</button>
+    <button data-tab="about">Info</button>
+  </div>
+
+  <!-- WORKOUTS -->
+  <section id="workouts" class="card">
+    <h2>Dodaj trening siłowy</h2>
+    <div class="row">
+      <div class="col-4">
+        <label>Data</label>
+        <input type="date" id="w_date">
+      </div>
+      <div class="col-4">
+        <label>Ćwiczenie</label>
+        <input type="text" id="w_ex" placeholder="np. Martwy ciąg">
+      </div>
+      <div class="col-2">
+        <label>Serie</label>
+        <input type="number" id="w_sets" min="1" value="3">
+      </div>
+      <div class="col-2">
+        <label>Powt.</label>
+        <input type="number" id="w_reps" min="1" value="5">
+      </div>
+      <div class="col-3">
+        <label>Ciężar (kg)</label>
+        <input type="number" id="w_weight" min="0" step="0.5">
+      </div>
+      <div class="col-9">
+        <label>Notatka</label>
+        <input type="text" id="w_note" placeholder="Jak poszło?">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary" id="addWorkout">+ Dodaj</button>
+        <button class="btn" id="addMulti">+ Dodaj seriami (x powt.)</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>Szybkie szablony – FBW A / FBW B</h3>
+      <div class="row">
+        <div class="col-6">
+          <button class="btn btn-primary" id="tplA">Wstaw zestaw FBW A (dziś)</button>
+          <small>Przysiad 5x5, Wyciskanie leżąc 5x5, Wiosłowanie 5x5, Dipsy 3x8</small>
+        </div>
+        <div class="col-6">
+          <button class="btn btn-primary" id="tplB">Wstaw zestaw FBW B (dziś)</button>
+          <small>Martwy ciąg 5x3, OHP 5x5, Podciąganie 3x8, Hip thrust 4x8</small>
+        </div>
+      </div>
+    </div>
+
+    <h3>Twoje treningi</h3>
+    <div class="row">
+      <div class="col-6">
+        <label>Filtr – ćwiczenie</label>
+        <input type="text" id="filter_ex" placeholder="np. Przysiad">
+      </div>
+      <div class="col-6">
+        <label>Sortuj</label>
+        <select id="sort_workouts">
+          <option value="date_desc">Data (najnowsze)</option>
+          <option value="date_asc">Data (najstarsze)</option>
+          <option value="weight_desc">Ciężar (max)</option>
+          <option value="weight_asc">Ciężar (min)</option>
+        </select>
+      </div>
+    </div>
+    <table class="table" id="workouts_table">
+      <thead><tr><th>Data</th><th>Ćwiczenie</th><th>Serie x Powt.</th><th>Ciężar</th><th>Notatka</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- CARDIO -->
+  <section id="cardio" class="card" style="display:none">
+    <h2>Cardio – dodaj sesję</h2>
+    <div class="row">
+      <div class="col-4">
+        <label>Data</label><input type="date" id="c_date">
+      </div>
+      <div class="col-4">
+        <label>Rodzaj</label>
+        <input type="text" id="c_type" placeholder="Bieżnia, Rower, Basen, Orbitrek, Marsz...">
+      </div>
+      <div class="col-4">
+        <label>Czas (min)</label><input type="number" id="c_minutes" min="1" value="30">
+      </div>
+      <div class="col-4">
+        <label>Dystans (km) – opcjonalnie</label><input type="number" id="c_distance" step="0.01" min="0">
+      </div>
+      <div class="col-4">
+        <label>Średnie tętno – opcjonalnie</label><input type="number" id="c_hr" min="0">
+      </div>
+      <div class="col-8">
+        <label>Notatka</label><input type="text" id="c_note" placeholder="Strefa 2, interwały, po siłowym itp.">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary" id="addCardio">+ Dodaj cardio</button>
+        <button class="btn" data-cpreset="Bieżnia 30 min">+ Bieżnia 30 min</button>
+        <button class="btn" data-cpreset="Rower 30 min">+ Rower 30 min</button>
+        <button class="btn" data-cpreset="Basen 30 min">+ Basen 30 min</button>
+        <button class="btn" data-cpreset="Marsz 40 min">+ Marsz 40 min</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>Podsumowanie tygodnia</h3>
+      <div class="row">
+        <div class="col-6">
+          <div><b>Minuty cardio (tydzień):</b> <span id="c_sum_week">0</span></div>
+          <div><b>Liczba sesji:</b> <span id="c_sessions_week">0</span></div>
+        </div>
+        <div class="col-6">
+          <label>Wykres minut/tydzień</label>
+          <canvas id="chart_cardio_weekly" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <h3>Historia cardio</h3>
+    <table class="table" id="cardio_table">
+      <thead><tr><th>Data</th><th>Rodzaj</th><th>Min</th><th>Km</th><th>HR</th><th>Notatka</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- WEIGHT -->
+  <section id="weight" class="card" style="display:none">
+    <h2>Wpis wagi</h2>
+    <div class="row">
+      <div class="col-4"><label>Data</label><input type="date" id="wg_date"></div>
+      <div class="col-4"><label>Waga (kg)</label><input type="number" id="wg_value" step="0.1" min="0"></div>
+      <div class="col-4"><label>Notatka</label><input type="text" id="wg_note" placeholder="np. po treningu"></div>
+      <div class="col-12"><button class="btn btn-primary" id="addWeight">+ Zapisz</button></div>
+    </div>
+
+    <h3>Historia wagi</h3>
+    <table class="table" id="weight_table">
+      <thead><tr><th>Data</th><th>Waga</th><th>Notatka</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- CHARTS -->
+  <section id="charts" class="card" style="display:none">
+    <h2>Wykresy</h2>
+    <div class="row">
+      <div class="col-12">
+        <label>Wykres wagi</label>
+        <canvas id="chart_weight" height="160"></canvas>
+      </div>
+      <div class="col-12">
+        <label>Wykres siły (wybierz ćwiczenie)</label>
+        <input type="text" id="chart_ex_filter" placeholder="np. Ławka płaska">
+        <canvas id="chart_strength" height="160"></canvas>
+        <small>Wykres pokazuje najwyższy ciężar z danego dnia dla wybranego ćwiczenia.</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section id="tools" class="card" style="display:none">
+    <h2>Narzędzia</h2>
+    <div class="row">
+      <div class="col-6">
+        <div class="card">
+          <h3>Kalkulator 1RM</h3>
+          <label>Ciężar (kg)</label><input type="number" id="rm_w" step="0.5" min="0">
+          <label>Powtórzenia</label><input type="number" id="rm_r" min="1" value="5">
+          <button class="btn btn-primary" id="calcRM">Oblicz 1RM</button>
+          <div id="rm_out"><small>Wynik pojawi się tutaj (Epley, Brzycki)</small></div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card">
+          <h3>Szybkie serie</h3>
+          <label>Wybierz presety</label>
+          <div class="row">
+            <div class="col-6"><button class="btn" data-preset="5x5">Dodaj 5x5</button></div>
+            <div class="col-6"><button class="btn" data-preset="3x8">Dodaj 3x8</button></div>
+            <div class="col-6"><button class="btn" data-preset="4x8">Dodaj 4x8</button></div>
+            <div class="col-6"><button class="btn" data-preset="5x3">Dodaj 5x3</button></div>
+          </div>
+          <small>Użyj z aktualnymi polami na zakładce „Treningi”.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Przypomnienia na iPhone (Skróty)</h3>
+      <ol>
+        <li>Otwórz aplikację <b>Skróty</b> → <b>Automatyzacja</b> → <b>Utwórz automatyzację osobistą</b>.</li>
+        <li>Wybierz <b>Godzina dnia</b>, ustaw np. 21:00 i dni treningowe.</li>
+        <li>Dodaj akcję: <b>Otwórz adres URL</b> i wklej adres Twojej aplikacji FitLog.</li>
+        <li>Dodaj akcję: <b>Pokaż powiadomienie</b> „Zapisz trening/wagę w FitLog”.</li>
+        <li>Wyłącz „Pytaj przed uruchomieniem”. Gotowe.</li>
+      </ol>
+      <small>iOS nie pozwala PWA na własne powiadomienia w tle bezpośrednio, ale automatyzacja Skrótów świetnie to zastępuje.</small>
+    </div>
+  </section>
+
+  <!-- BACKUP -->
+  <section id="backup" class="card" style="display:none">
+    <h2>Eksport / Import</h2>
+    <p><small>Twoje dane są zapisywane lokalnie. Zrób kopię lub przenieś na inne urządzenie.</small></p>
+    <button class="btn btn-primary" id="exportJSON">Eksport JSON</button>
+    <button class="btn" id="exportCSV">Eksport CSV (treningi + waga + cardio)</button>
+    <input type="file" id="importFile" accept=".json">
+    <button class="btn" id="importBtn">Import JSON</button>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="card" style="display:none">
+    <h2>O aplikacji</h2>
+    <p>FitLog to prosta aplikacja PWA do logowania treningów siłowych, wagi, <b>cardio</b> i śledzenia progresu. Działa offline.</p>
+    <p><span class="badge">Instalacja</span> Otwórz w Safari, stuknij <b>Udostępnij</b> → <b>Dodaj do ekranu początkowego</b>.</p>
+  </section>
+
+</div>
+
+<footer>© 2025 FitLog – lokalne dane, bez kont i chmury</footer>
+
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js');
+  });
+}
+</script>
+</body>
+</html>
